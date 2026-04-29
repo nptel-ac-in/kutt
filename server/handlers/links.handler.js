@@ -524,6 +524,11 @@ async function redirect(req, res, next) {
   }
 
   // 8. Redirect to target
+  // Mark cacheable so an upstream CDN (Cloud CDN) can serve hot short-link
+  // hits from edge for up to 5 minutes. After a link is edited or deleted,
+  // stale destinations may serve until TTL expires; bust with a CDN
+  // invalidation if you need an immediate cut.
+  res.set("Cache-Control", "public, max-age=300, s-maxage=300");
   return res.redirect(link.target);
 };
 
