@@ -291,6 +291,7 @@ const sanitize = {
       id: link.uuid,
       relative_created_at: getTimeAgo(timestamps.created_at),
       relative_expire_in: link.expire_in && ms(differenceInMilliseconds(parseDatetime(link.expire_in), new Date()), { long: true }),
+      cache_ttl_label: cacheTtlLabel(link.cache_ttl),
       password: !!link.password,
       visit_count: link.visit_count.toLocaleString("en-US"),
       link: getShortURL(link.address, link.domain),
@@ -305,6 +306,7 @@ const sanitize = {
       id: link.uuid,
       relative_created_at: getTimeAgo(timestamps.created_at),
       relative_expire_in: link.expire_in && ms(differenceInMilliseconds(parseDatetime(link.expire_in), new Date()), { long: true }),
+      cache_ttl_label: cacheTtlLabel(link.cache_ttl),
       password: !!link.password,
       visit_count: link.visit_count.toLocaleString("en-US"),
       link: getShortURL(link.address, link.domain)
@@ -334,6 +336,12 @@ const sanitize = {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function cacheTtlLabel(ttl) {
+  if (ttl === null || ttl === undefined) return undefined;
+  if (ttl === 0) return "off";
+  return `${ttl}s`;
 }
 
 function removeWww(host) {

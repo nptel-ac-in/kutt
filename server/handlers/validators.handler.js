@@ -77,6 +77,16 @@ const createLink = [
     .custom(value => value >= ms("1m"))
     .withMessage("Expire time should be more than 1 minute.")
     .customSanitizer(value => utils.dateToUTC(addMilliseconds(new Date(), value))),
+  body("cache_ttl")
+    .optional({ nullable: true })
+    .customSanitizer(value => value === "" ? null : value)
+    .custom(value => {
+      if (value === null) return true;
+      const n = Number(value);
+      return Number.isInteger(n) && n >= 0 && n <= 604800;
+    })
+    .withMessage("Cache TTL must be an integer between 0 and 604800 seconds.")
+    .customSanitizer(value => value === null ? null : Number(value)),
   body("domain")
     .optional({ nullable: true, checkFalsy: true })
     .customSanitizer(value => value === env.DEFAULT_DOMAIN ? null : value)
@@ -146,6 +156,16 @@ const editLink = [
     .trim()
     .isLength({ min: 0, max: 2040 })
     .withMessage("Description length must be between 0 and 2040."),
+  body("cache_ttl")
+    .optional({ nullable: true })
+    .customSanitizer(value => value === "" ? null : value)
+    .custom(value => {
+      if (value === null) return true;
+      const n = Number(value);
+      return Number.isInteger(n) && n >= 0 && n <= 604800;
+    })
+    .withMessage("Cache TTL must be an integer between 0 and 604800 seconds.")
+    .customSanitizer(value => value === null ? null : Number(value)),
   param("id", "ID is invalid.")
     .exists({ checkFalsy: true, checkNull: true })
     .isLength({ min: 36, max: 36 })

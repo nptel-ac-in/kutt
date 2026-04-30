@@ -65,6 +65,7 @@ const spec = {
   REPORT_EMAIL: str({ default: "" }),
   CONTACT_EMAIL: str({ default: "" }),
   NODE_APP_INSTANCE: num({ default: 0 }),
+  DEFAULT_CACHE_TTL: num({ default: 300 }),
 };
 
 for (const key in spec) {

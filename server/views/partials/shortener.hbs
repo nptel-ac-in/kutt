@@ -123,14 +123,29 @@
         </label>
         <label class="description {{#if errors.description}}error{{/if}}">
           Description:
-          <input 
-            type="text" 
-            id="description" 
-            name="description" 
-            placeholder="Description..." 
-            hx-preserve="true" 
+          <input
+            type="text"
+            id="description"
+            name="description"
+            placeholder="Description..."
+            hx-preserve="true"
           />
           {{#if errors.description}}<p class="error">{{errors.description}}</p>{{/if}}
+        </label>
+      </div>
+      <div class="advanced-input-wrapper">
+        <label class="cache-ttl {{#if errors.cache_ttl}}error{{/if}}">
+          Cache TTL (seconds):
+          <input
+            type="number"
+            id="cache_ttl"
+            name="cache_ttl"
+            min="0"
+            max="604800"
+            placeholder="default {{default_cache_ttl}} (0 disables)"
+            hx-preserve="true"
+          />
+          {{#if errors.cache_ttl}}<p class="error">{{errors.cache_ttl}}</p>{{/if}}
         </label>
       </div>
     </section>

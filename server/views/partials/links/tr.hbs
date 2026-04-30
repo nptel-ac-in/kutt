@@ -16,6 +16,11 @@
         Expires in {{relative_expire_in}}
       </p>
     {{/if}}
+    {{#if cache_ttl_label}}
+      <p class="description">
+        Cache: {{cache_ttl_label}}
+      </p>
+    {{/if}}
   </td>
   <td class="short-link right-fade">
     <div class="clipboard small">

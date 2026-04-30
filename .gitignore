@@ -14,3 +14,4 @@ docs/api/static
 **/.DS_Store
 db/*
 !db/.gitkeep
+docker-compose.override.yml

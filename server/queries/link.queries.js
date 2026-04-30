@@ -17,6 +17,7 @@ const selectable = [
   "links.password",
   "links.description",
   "links.expire_in",
+  "links.cache_ttl",
   "links.target",
   "links.visit_count",
   "links.user_id",
@@ -210,6 +211,7 @@ async function create(params) {
       address: params.address,
       description: params.description || null,
       expire_in: params.expire_in || null,
+      cache_ttl: params.cache_ttl ?? null,
       target: params.target
     },
     "*"

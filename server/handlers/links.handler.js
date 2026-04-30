@@ -97,7 +97,7 @@ async function getAdmin(req, res) {
 };
 
 async function create(req, res) {
-  const { reuse, password, customurl, description, target, fetched_domain, expire_in } = req.body;
+  const { reuse, password, customurl, description, target, fetched_domain, expire_in, cache_ttl } = req.body;
   const domain_id = fetched_domain ? fetched_domain.id : null;
   
   const targetDomain = utils.removeWww(URL.parse(target).hostname);
@@ -141,6 +141,7 @@ async function create(req, res) {
     description,
     target,
     expire_in,
+    cache_ttl,
     user_id: req.user && req.user.id
   });
 
@@ -172,14 +173,14 @@ async function edit(req, res) {
 
   let isChanged = false;
   [
-    [req.body.address, "address"], 
-    [req.body.target, "target"], 
-    [req.body.description, "description"], 
-    [req.body.expire_in, "expire_in"], 
+    [req.body.address, "address"],
+    [req.body.target, "target"],
+    [req.body.description, "description"],
+    [req.body.expire_in, "expire_in"],
     [req.body.password, "password"]
   ].forEach(([value, name]) => {
     if (!value) {
-      if (name === "password" && link.password) 
+      if (name === "password" && link.password)
         req.body.password = null;
       else {
         delete req.body[name];
@@ -201,12 +202,23 @@ async function edit(req, res) {
     isChanged = true;
   });
 
+  // cache_ttl has different semantics: null clears the override, 0 means
+  // "no caching", positive int = TTL in seconds. So we can't fold it into
+  // the loop above (which treats falsy values as "skip").
+  if (req.body.cache_ttl !== undefined) {
+    if (req.body.cache_ttl === link.cache_ttl) {
+      delete req.body.cache_ttl;
+    } else {
+      isChanged = true;
+    }
+  }
+
   if (!isChanged) {
     throw new CustomError("Should at least update one field.");
   }
 
   const { address, target, description, expire_in, password } = req.body;
-  
+
   const targetDomain = target && utils.removeWww(URL.parse(target).hostname);
   const domain_id = link.domain_id || null;
 
@@ -237,7 +249,8 @@ async function edit(req, res) {
       ...(description && { description }),
       ...(target && { target }),
       ...(expire_in && { expire_in }),
-      ...((password || password === null) && { password })
+      ...((password || password === null) && { password }),
+      ...(req.body.cache_ttl !== undefined && { cache_ttl: req.body.cache_ttl })
     }
   );
 
@@ -294,12 +307,20 @@ async function editAdmin(req, res) {
     isChanged = true;
   });
 
+  if (req.body.cache_ttl !== undefined) {
+    if (req.body.cache_ttl === link.cache_ttl) {
+      delete req.body.cache_ttl;
+    } else {
+      isChanged = true;
+    }
+  }
+
   if (!isChanged) {
     throw new CustomError("Should at least update one field.");
   }
 
   const { address, target, description, expire_in, password } = req.body;
-  
+
   const targetDomain = target && utils.removeWww(URL.parse(target).hostname);
   const domain_id = link.domain_id || null;
 
@@ -330,7 +351,8 @@ async function editAdmin(req, res) {
       ...(description && { description }),
       ...(target && { target }),
       ...(expire_in && { expire_in }),
-      ...((password || password === null) && { password })
+      ...((password || password === null) && { password }),
+      ...(req.body.cache_ttl !== undefined && { cache_ttl: req.body.cache_ttl })
     }
   );
 
@@ -525,10 +547,14 @@ async function redirect(req, res, next) {
 
   // 8. Redirect to target
   // Mark cacheable so an upstream CDN (Cloud CDN) can serve hot short-link
-  // hits from edge for up to 5 minutes. After a link is edited or deleted,
-  // stale destinations may serve until TTL expires; bust with a CDN
-  // invalidation if you need an immediate cut.
-  res.set("Cache-Control", "public, max-age=300, s-maxage=300");
+  // hits from edge. Per-link override via `cache_ttl` (seconds); falls back
+  // to DEFAULT_CACHE_TTL. ttl=0 disables caching entirely.
+  const ttl = link.cache_ttl ?? env.DEFAULT_CACHE_TTL;
+  if (ttl === 0) {
+    res.set("Cache-Control", "no-store, max-age=0");
+  } else {
+    res.set("Cache-Control", `public, max-age=${ttl}, s-maxage=${ttl}`);
+  }
   return res.redirect(link.target);
 };
 

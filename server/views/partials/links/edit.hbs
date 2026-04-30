@@ -65,15 +65,29 @@
         </label>
         <label class="{{#if errors.expire_in}}error{{/if}}">
           Expire in:
-          <input 
+          <input
             id="edit-expire_in-{{id}}"
-            name="expire_in" 
-            type="text" 
+            name="expire_in"
+            type="text"
             placeholder="2 minutes/hours/days"
             value="{{relative_expire_in}}"
             hx-preserve="true"
           />
           {{#if errors.expire_in}}<p class="error">{{errors.expire_in}}</p>{{/if}}
+        </label>
+        <label class="{{#if errors.cache_ttl}}error{{/if}}">
+          Cache TTL (seconds):
+          <input
+            id="edit-cache_ttl-{{id}}"
+            name="cache_ttl"
+            type="number"
+            min="0"
+            max="604800"
+            placeholder="default {{default_cache_ttl}} (0 disables)"
+            value="{{cache_ttl}}"
+            hx-preserve="true"
+          />
+          {{#if errors.cache_ttl}}<p class="error">{{errors.cache_ttl}}</p>{{/if}}
         </label>
       </div>
       <div>
